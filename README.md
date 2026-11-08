@@ -34,3 +34,27 @@ py -3.11 -m venv .venv && .venv/Scripts/pip install torch --index-url https://do
 .venv/Scripts/python scripts/train_grpo.py --max_steps 400
 .venv/Scripts/python scripts/evaluate.py --hf outputs/grpo/final_lora --out results/grpo.json
 ```
+
+## Use the model
+
+`app/ask.py` asks a SQLite file questions in plain English, using the model in Ollama. It needs only the Python standard library, opens the database read-only, shows the SQL, and prints up to 50 rows.
+
+```bash
+python app/ask.py path/to/my.sqlite
+python app/ask.py my.sqlite -q "how many orders last month?"
+python app/ask.py my.sqlite --model text2sql --url http://localhost:11434
+```
+
+If SQLite rejects a query, the error goes back to the model for one retry.
+
+## Real-world eval
+
+`data/realworld/` holds four realistic databases (football, shop, school, hr) as SQL text and 160 hand-written questions with gold queries. It is a harder test than the random rows used for training.
+
+```bash
+python scripts/eval_realworld.py --ollama text2sql --out results/realworld.json
+python scripts/eval_realworld.py --predictions saved.jsonl   # lines of {"db", "question", "output"}
+python scripts/eval_realworld.py --oracle                    # self-test, must print 1.000
+```
+
+It prints accuracy overall, per database and per level. Tests: `python -m unittest discover -s tests -v`.
