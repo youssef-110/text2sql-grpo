@@ -98,12 +98,12 @@ def run_query(conn: sqlite3.Connection, sql: str):
 
 def _norm(v):
     if isinstance(v, float):
-        return round(v, 4) if v != int(v) else int(v)
+        return int(v) if v.is_integer() else round(v, 4)  # is_integer: int(inf) would raise
     if isinstance(v, str):
         try:
             f = float(v)
             return int(f) if f == int(f) else round(f, 4)
-        except ValueError:
+        except (ValueError, OverflowError):  # "abc", "NaN", "Inf", "1e999" stay text
             return v.strip()
     return v
 
@@ -124,7 +124,7 @@ def extract_sql(text: str) -> str | None:
     if not sql:
         return None
     sql = sql.strip().rstrip(";").strip()
-    if ";" in sql or not re.match(r"(SELECT|WITH)\b", sql, re.I):  # one read statement only
+    if ";" in _STR_LIT.sub(" ", sql) or not re.match(r"(SELECT|WITH)\b", sql, re.I):  # one read statement only
         return None
     return sql or None
 
