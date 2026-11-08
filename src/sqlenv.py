@@ -30,9 +30,8 @@ def _random_value(rng: random.Random, col_type: str, strings: list[str], nums: l
     t = col_type.upper()
     numeric = any(k in t for k in ("INT", "REAL", "NUM", "FLOAT", "DOUBLE", "DEC"))
     roll = rng.random()
-    if roll < 0.08:
-        return None
-    if roll < 0.55:  # reuse a literal from the gold query so WHERE clauses hit rows
+    # No NULLs: questions never say whether COUNT(*) or COUNT(col) is meant, so NULLs would grade noise.
+    if roll < 0.5:  # reuse a literal from the gold query so WHERE clauses hit rows
         pool = (nums or strings) if numeric else (strings + [str(n) for n in nums])
         if pool:
             v = rng.choice(pool)
@@ -46,12 +45,20 @@ def _random_value(rng: random.Random, col_type: str, strings: list[str], nums: l
     return "".join(rng.choices(string.ascii_lowercase, k=rng.randint(3, 8)))
 
 
+_TEXT_COL = re.compile(r"\b(VARCHAR|TEXT|CHAR)(\s*\(\s*\d+\s*\))?", re.I)
+
+
+def _nocase(schema_sql: str) -> str:
+    """Text columns compare case-insensitively: 'De La Salle' and 'de la salle' are the same answer to a person."""
+    return _TEXT_COL.sub(lambda m: m.group(0) + " COLLATE NOCASE", schema_sql)
+
+
 def build_db(schema_sql: str, gold_sql: str, seed: int, rows: int = ROWS_PER_TABLE) -> sqlite3.Connection:
     """In-memory DB with `schema_sql` tables filled with seeded random rows biased toward gold literals."""
     rng = random.Random(seed)
     strings, nums = extract_literals(gold_sql)
     conn = sqlite3.connect(":memory:")
-    conn.executescript(schema_sql)
+    conn.executescript(_nocase(schema_sql))
     tables = [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")]
     # Shared small key pool so joins between tables actually match.
     keys = [rng.randint(1, 12) for _ in range(rows)]

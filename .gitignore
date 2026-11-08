@@ -6,3 +6,4 @@ unsloth_compiled_cache/
 *.sqlite
 *.db
 data/train.jsonl
+.tmp/
