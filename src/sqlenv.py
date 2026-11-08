@@ -69,7 +69,15 @@ def build_db(schema_sql: str, gold_sql: str, seed: int, rows: int = ROWS_PER_TAB
             conn.execute(f'INSERT INTO "{table}" VALUES ({placeholders})', values)
     conn.commit()
     conn.execute("PRAGMA query_only = 1")
+    conn.set_authorizer(_read_only_authorizer)  # model output is untrusted: no ATTACH, PRAGMA or writes
     return conn
+
+
+_ALLOWED_ACTIONS = {sqlite3.SQLITE_SELECT, sqlite3.SQLITE_READ, sqlite3.SQLITE_FUNCTION, getattr(sqlite3, "SQLITE_RECURSIVE", 33)}
+
+
+def _read_only_authorizer(action, arg1, arg2, db_name, trigger):
+    return sqlite3.SQLITE_OK if action in _ALLOWED_ACTIONS else sqlite3.SQLITE_DENY
 
 
 def run_query(conn: sqlite3.Connection, sql: str):
@@ -116,7 +124,7 @@ def extract_sql(text: str) -> str | None:
     if not sql:
         return None
     sql = sql.strip().rstrip(";").strip()
-    if ";" in sql:  # one statement only
+    if ";" in sql or not re.match(r"(SELECT|WITH)\b", sql, re.I):  # one read statement only
         return None
     return sql or None
 
