@@ -1,0 +1,14 @@
+# Training stack that works on Windows 11 + RTX 4060 8 GB (Python 3.11).
+# Install torch FIRST from the CUDA index, then the rest:
+#   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cu130
+#   pip install -r requirements.txt
+# Do not install xformers (wheel mismatches torch 2.14; Unsloth falls back to PyTorch attention).
+unsloth==2026.11.3
+unsloth_zoo==2026.11.3
+trl==1.15.0
+transformers==5.17.0
+peft==0.21.2
+accelerate==1.15.0
+bitsandbytes==0.50.2
+datasets==4.8.5
+triton-windows==3.3.1.post21 ; sys_platform == "win32"

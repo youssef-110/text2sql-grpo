@@ -5,5 +5,5 @@ unsloth_compiled_cache/
 *.gguf
 *.sqlite
 *.db
-data/train.jsonl
 .tmp/
+logs/
