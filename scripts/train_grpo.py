@@ -33,7 +33,8 @@ def main():
     ap.add_argument("--model", default=BASE)
     ap.add_argument("--train", default=str(ROOT / "data" / "train.jsonl"))
     ap.add_argument("--out", default=str(ROOT / "outputs" / "grpo"))
-    ap.add_argument("--max_steps", type=int, default=400)
+    ap.add_argument("--max_steps", type=int, default=750)
+    ap.add_argument("--grad_accum", type=int, default=8)
     ap.add_argument("--lr", type=float, default=1e-5)
     ap.add_argument("--resume", action="store_true")
     a = ap.parse_args()
@@ -49,11 +50,11 @@ def main():
         output_dir=a.out,
         learning_rate=a.lr,
         lr_scheduler_type="cosine",
-        warmup_ratio=0.05,
+        warmup_steps=20,
         weight_decay=0.0,
         max_grad_norm=0.5,
         per_device_train_batch_size=8,
-        gradient_accumulation_steps=4,
+        gradient_accumulation_steps=a.grad_accum,  # 8 x 8 completions = 8 questions per step
         num_generations=8,  # group size: 8 samples per question, rewards compared within the group
         max_prompt_length=600,
         max_completion_length=200,
