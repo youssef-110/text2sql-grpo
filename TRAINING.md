@@ -40,7 +40,13 @@ export TMP=$PWD/.tmp TEMP=$PWD/.tmp PYTHONIOENCODING=utf-8
 .venv/Scripts/python scripts/train_grpo.py > logs/train.log 2>&1
 ```
 - Defaults: 750 steps, 8 questions × 8 samples per step, LoRA r=32, lr 1e-5, cosine, 4-bit base. That's one pass over the 6000 training questions.
-- Speed on a 4060: the first step is ~5 min (compile), then ~25–30 s/step, so **~6 h total**. Keep it plugged in with the lid open.
+- **Gentle mode is on by default** (`src/gentle.py`), so the laptop stays usable:
+  - pauses when the GPU reaches **80°C** and resumes at **72°C** (max 10 min per pause). Idle is ~66°C because the dGPU drives the external monitor, and the laptop 4060 throttles near 87°C.
+  - micro-batch of 4 completions (**~3.7 GB VRAM**, half the card), with the same 8 questions per optimizer step through gradient accumulation.
+  - 10 s rest after every step, and the process runs at below-normal CPU priority.
+  - Tested 2026-11-11: average 72°C, brief peak 83°C, no OOM.
+  - Tune with `--max_temp`, `--resume_temp`, `--rest_s` and `--micro_batch`. `--full_speed` disables all of it (~25–30 s/step, ~6 h, runs hot).
+- Speed in gentle mode: the first step is ~5 min (compile), then ~17 s of compute per step plus pauses and rest, so **~10–14 h total**. Keep it plugged in with the lid open. `[gentle]` lines in the log show the temperature every 10 steps and each pause.
 - Checkpoints go to `outputs/grpo/checkpoint-N` every 50 steps. Resume after a stop with `--resume`.
 - Watch progress: `rewards/execution_reward/mean` in `logs/train.log` should rise from ~0.6 toward 0.85+. If `completions/mean_length` balloons or reward collapses, stop and lower `--lr` to 5e-6.
 - In the smoke test, steps 1–3 had reward 0.56, 0.61 and 0.85, with no OOM.

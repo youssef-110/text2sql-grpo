@@ -5,6 +5,7 @@
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,7 +14,9 @@ sys.path.insert(0, str(ROOT))
 from unsloth import FastLanguageModel  # noqa: E402  (must import before trl/transformers)
 from datasets import Dataset  # noqa: E402
 from trl import GRPOConfig, GRPOTrainer  # noqa: E402
+from transformers import TrainerCallback  # noqa: E402
 
+from src.gentle import cool_down, gpu_temp, lower_priority  # noqa: E402
 from src.rewards import build_messages, execution_reward, length_penalty  # noqa: E402
 
 BASE = "unsloth/Qwen2.5-Coder-1.5B-Instruct"
@@ -28,6 +31,23 @@ def load_rows(path):
     ])
 
 
+class GentleCallback(TrainerCallback):
+    """Pause when the GPU runs hot and rest between steps, so the laptop stays usable and cool."""
+
+    def __init__(self, max_temp, resume_temp, rest_s):
+        self.max_temp, self.resume_temp, self.rest_s = max_temp, resume_temp, rest_s
+
+    def on_substep_end(self, args, state, control, **kw):  # after each micro-batch: steps are minutes long
+        cool_down(self.max_temp, self.resume_temp)
+
+    def on_step_end(self, args, state, control, **kw):
+        cool_down(self.max_temp, self.resume_temp)
+        if self.rest_s:
+            time.sleep(self.rest_s)
+        if state.global_step % 10 == 0:
+            print(f"[gentle] step {state.global_step} GPU {gpu_temp()}°C", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default=BASE)
@@ -37,7 +57,19 @@ def main():
     ap.add_argument("--grad_accum", type=int, default=8)
     ap.add_argument("--lr", type=float, default=1e-5)
     ap.add_argument("--resume", action="store_true")
+    # Laptop-friendly defaults: smaller micro-batches (less VRAM), heat ceiling, rest between steps.
+    ap.add_argument("--micro_batch", type=int, default=4, help="completions per forward pass; 8 = faster, more VRAM")
+    # Idle is ~66°C here (dGPU drives the external monitor); laptop 4060 throttles near 87°C.
+    ap.add_argument("--max_temp", type=int, default=80, help="pause training at this GPU °C")
+    ap.add_argument("--resume_temp", type=int, default=72, help="continue once cooled to this °C")
+    ap.add_argument("--rest_s", type=int, default=10, help="idle seconds after every step")
+    ap.add_argument("--full_speed", action="store_true", help="disable all gentle limits")
     a = ap.parse_args()
+    if a.full_speed:
+        a.micro_batch, a.max_temp, a.rest_s = 8, 999, 0
+    else:
+        lower_priority()
+    accum = a.grad_accum * 8 // a.micro_batch  # keep 64 completions (8 questions) per optimizer step
 
     model, tok = FastLanguageModel.from_pretrained(a.model, max_seq_length=1024, load_in_4bit=True)
     model = FastLanguageModel.get_peft_model(
@@ -53,8 +85,8 @@ def main():
         warmup_steps=20,
         weight_decay=0.0,
         max_grad_norm=0.5,
-        per_device_train_batch_size=8,
-        gradient_accumulation_steps=a.grad_accum,  # 8 x 8 completions = 8 questions per step
+        per_device_train_batch_size=a.micro_batch,
+        gradient_accumulation_steps=accum,
         num_generations=8,  # group size: 8 samples per question, rewards compared within the group
         max_prompt_length=600,
         max_completion_length=200,
@@ -72,6 +104,7 @@ def main():
         model=model, processing_class=tok, args=cfg,
         reward_funcs=[execution_reward, length_penalty],
         train_dataset=load_rows(a.train),
+        callbacks=[GentleCallback(a.max_temp, a.resume_temp, a.rest_s)],
     )
     trainer.train(resume_from_checkpoint=a.resume or None)
     model.save_pretrained(Path(a.out) / "final_lora")
