@@ -44,6 +44,8 @@ def lower_priority() -> None:
         import ctypes
         BELOW_NORMAL_PRIORITY_CLASS = 0x4000
         ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS)
+        # Keep Windows from sleeping while this process lives (ES_CONTINUOUS | ES_SYSTEM_REQUIRED); display may still turn off.
+        ctypes.windll.kernel32.SetThreadExecutionState(0x80000000 | 0x00000001)
     else:
         import os
         os.nice(10)

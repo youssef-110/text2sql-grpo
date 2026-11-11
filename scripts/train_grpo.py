@@ -6,6 +6,8 @@ import argparse
 import json
 import sys
 import time
+
+import psutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,8 +36,9 @@ def load_rows(path):
 class GentleCallback(TrainerCallback):
     """Pause when the GPU runs hot and rest between steps, so the laptop stays usable and cool."""
 
-    def __init__(self, max_temp, resume_temp, rest_s):
+    def __init__(self, max_temp, resume_temp, rest_s, max_ram_gb=0):
         self.max_temp, self.resume_temp, self.rest_s = max_temp, resume_temp, rest_s
+        self.max_ram_gb, self.ram_stop = max_ram_gb, False
 
     def on_substep_end(self, args, state, control, **kw):  # after each micro-batch: steps are minutes long
         cool_down(self.max_temp, self.resume_temp)
@@ -44,8 +47,13 @@ class GentleCallback(TrainerCallback):
         cool_down(self.max_temp, self.resume_temp)
         if self.rest_s:
             time.sleep(self.rest_s)
+        # Host RAM creeps up over hours (leak in the training stack); checkpoint and exit so a fresh process resumes.
+        ram = psutil.Process().memory_info().private / 2**30 if self.max_ram_gb else 0
         if state.global_step % 10 == 0:
-            print(f"[gentle] step {state.global_step} GPU {gpu_temp()}°C", flush=True)
+            print(f"[gentle] step {state.global_step} GPU {gpu_temp()}°C RAM {ram:.1f} GB", flush=True)
+        if self.max_ram_gb and ram > self.max_ram_gb:
+            print(f"[gentle] RAM {ram:.1f} GB > {self.max_ram_gb} GB: checkpoint and restart", flush=True)
+            control.should_save = control.should_training_stop = self.ram_stop = True
 
 
 def main():
@@ -63,6 +71,7 @@ def main():
     ap.add_argument("--max_temp", type=int, default=80, help="pause training at this GPU °C")
     ap.add_argument("--resume_temp", type=int, default=72, help="continue once cooled to this °C")
     ap.add_argument("--rest_s", type=int, default=10, help="idle seconds after every step")
+    ap.add_argument("--max_ram_gb", type=float, default=10, help="checkpoint and exit (code 3) above this; run_gentle.ps1 resumes")
     ap.add_argument("--full_speed", action="store_true", help="disable all gentle limits")
     a = ap.parse_args()
     if a.full_speed:
@@ -104,9 +113,11 @@ def main():
         model=model, processing_class=tok, args=cfg,
         reward_funcs=[execution_reward, length_penalty],
         train_dataset=load_rows(a.train),
-        callbacks=[GentleCallback(a.max_temp, a.resume_temp, a.rest_s)],
+        callbacks=[gentle := GentleCallback(a.max_temp, a.resume_temp, a.rest_s, 0 if a.full_speed else a.max_ram_gb)],
     )
     trainer.train(resume_from_checkpoint=a.resume or None)
+    if gentle.ram_stop:
+        sys.exit(3)
     model.save_pretrained(Path(a.out) / "final_lora")
     tok.save_pretrained(Path(a.out) / "final_lora")
 
