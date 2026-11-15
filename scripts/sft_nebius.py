@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT))
 from src.rewards import build_messages, extract_sql  # noqa: E402
 
 API = "https://api.tokenfactory.nebius.com/v1"
-OUT = ROOT / "outputs" / "sft"
+OUT = ROOT / "outputs" / "sft"  # replaced by outputs/<--tag> in main
 JOB = OUT / "job.json"
 VAL_ROWS = 300
 
@@ -37,8 +37,8 @@ def call(method, path, **kw):
     return r
 
 
-def prep(_):
-    rows = [json.loads(l) for l in open(ROOT / "data" / "train.jsonl", encoding="utf-8")]
+def prep(a):
+    rows = [json.loads(l) for l in open(ROOT / a.data, encoding="utf-8")]
     random.Random(0).shuffle(rows)
     OUT.mkdir(parents=True, exist_ok=True)
     for name, part in (("val", rows[:VAL_ROWS]), ("train", rows[VAL_ROWS:])):
@@ -62,11 +62,11 @@ def start(a):
         with open(OUT / f"{name}.jsonl", "rb") as f:
             ids[name] = call("POST", "/files", files={"file": f}, data={"purpose": "fine-tune"}).json()["id"]
     job = call("POST", "/fine_tuning/jobs", json={
-        "model": a.model, "suffix": "text2sql", "seed": 42,
+        "model": a.model, "suffix": f"text2sql-{a.tag}", "seed": 42,
         "training_file": ids["train"], "validation_file": ids["val"],
         "hyperparameters": {
             "n_epochs": a.epochs, "batch_size": 16, "learning_rate": a.lr, "warmup_ratio": 0.03,
-            "lora": True, "lora_r": 32, "lora_alpha": 64, "lora_dropout": 0.05,
+            "lora": True, "lora_r": a.rank, "lora_alpha": 2 * a.rank, "lora_dropout": 0.05,
             # packing off: ~130-token rows packed into 8192 would leave only a few dozen optimizer steps
             "packing": False, "context_length": 8192,
         },
@@ -103,5 +103,10 @@ if __name__ == "__main__":
     ap.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct")
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--lr", type=float, default=1e-4)
+    ap.add_argument("--rank", type=int, default=32)
+    ap.add_argument("--data", default="data/train.jsonl", help="rows of {question, schema, answer}")
+    ap.add_argument("--tag", default="sft", help="run name: files go to outputs/<tag>/")
     a = ap.parse_args()
+    OUT = ROOT / "outputs" / a.tag
+    JOB = OUT / "job.json"
     {"prep": prep, "start": start, "status": status, "download": download}[a.cmd](a)

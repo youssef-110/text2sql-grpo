@@ -8,3 +8,4 @@ unsloth_compiled_cache/
 .tmp/
 logs/
 .env
+data/train_mix.jsonl

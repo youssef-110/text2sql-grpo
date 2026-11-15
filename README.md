@@ -10,16 +10,20 @@ A small offline text-to-SQL model. Base: **Qwen2.5-Coder-1.5B-Instruct**, fine-t
 
 160 hand-written questions over four multi-table SQLite databases (shop, HR, school, football). Scored with `scripts/eval_realworld.py` and `data/realworld/` from branch `ahany/agent-work`, which is not merged into `main` yet.
 
-| | Fine-tuned 7B, epoch 3 | Qwen2.5-7B-Instruct, untuned |
-|---|---|---|
-| All 160 | **16.3%** | **81.9%** |
-| Easy (48) | 25.0% | 93.8% |
-| Medium (64) | 14.1% | 87.5% |
-| Hard (48) | 10.4% | 62.5% |
-| Query runs without error | 54.4% | 96.3% |
-| Results file | `results/realworld-text2sql.json` | `results/realworld-qwen2.5-7b.json` |
+| | Untuned Qwen2.5-7B-Instruct | Run 1, epoch 3 (published) | Run 2, epoch 1 | Run 2, epoch 2 |
+|---|---|---|---|---|
+| All 160 | **81.9%** | 16.3% | 65.6% | 62.5% |
+| Easy (48) | 93.8% | 25.0% | 81.2% | 83.3% |
+| Medium (64) | 87.5% | 14.1% | 67.2% | 64.1% |
+| Hard (48) | 62.5% | 10.4% | 47.9% | 39.6% |
+| Query runs without error | 96.3% | 54.4% | 93.1% | 91.2% |
+| Results file | `realworld-qwen2.5-7b.json` | `realworld-text2sql.json` | `realworld-v2-e1.json` | `realworld-v2-e2.json` |
 
-The fine-tune is far worse than its own base model here: it joins tables the question never mentions and invents column names. The training data has tiny, mostly single-table schemas where nearly every column is used, and the model learned that habit. For real use, run the untuned `qwen2.5:7b`. Any future training run should be judged on this set, with 81.9% as the bar.
+**Neither fine-tune beats the untuned base. For real use, run the untuned `qwen2.5:7b` with the system prompt from `src/rewards.py`.**
+
+- Run 1 (`data/train.jsonl`, from `b-mc2/sql-create-context`): the training schemas are tiny and mostly single-table, with nearly every column used. The model learned to join tables the question never mentions and to invent columns.
+- Run 2 (`scripts/prepare_mix.py`: 6,598 Spider rows with the full schema of each database plus 3,000 multi-table Gretel rows; lower learning rate, rank 16, 2 epochs): fixes most of that, but the model gets sloppier than the base on details. It drops tie-break ordering and rounding the question asks for and writes `= 'null'` where `IS NULL` is needed. More training made it worse (epoch 2 below epoch 1).
+- The public training answers are terser and less careful than what the base model already writes, so supervised fine-tuning on them pulls it down. Any future run should be judged on this set, with 81.9% as the bar.
 
 ### In-distribution test set
 
@@ -45,6 +49,7 @@ Epoch 3 beats epoch 2 by five questions, which is within noise, and it was picke
 | `scripts/evaluate.py` | Execution accuracy, using HF/LoRA weights or an Ollama model |
 | `scripts/sft_nebius.py` | Supervised LoRA fine-tuning on Nebius Token Factory: build the chat-format files, start the job, poll it, download the adapters |
 | `scripts/merge_lora.py` | Bakes a LoRA adapter into the full-precision base weights one shard at a time (fits in 16 GB RAM) |
+| `scripts/prepare_mix.py` | Builds `data/train_mix.jsonl` for run 2: Spider with full database schemas plus multi-table Gretel rows, each validated by running its answer in SQLite |
 | `AGENT_PLAN_AHANY.md` | Work plan for the second contributor's agent (no model needed) |
 
 ## Reward
