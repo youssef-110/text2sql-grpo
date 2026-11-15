@@ -4,6 +4,27 @@ A small offline text-to-SQL model. Base: **Qwen2.5-Coder-1.5B-Instruct**, fine-t
 
 **Published model:** [Hex990/text2sql-qwen2.5-7b](https://huggingface.co/Hex990/text2sql-qwen2.5-7b) on Hugging Face. It is a supervised LoRA fine-tune of **Qwen2.5-7B-Instruct**, trained on Nebius Token Factory, and scores **83.4%** execution accuracy on the test set. **It should not be used on real databases:** on 160 real-world questions it scores 16.3%, against 81.9% for the untuned `qwen2.5:7b` (see Results). It is not the GRPO model: the GRPO run on the 1.5B is paused at step 200 of 750 (`outputs/grpo/checkpoint-200`, not in git) and has not been evaluated.
 
+## Use
+
+The best model tested is the untuned `qwen2.5:7b` with this project's system prompt. `Modelfile` sets that up:
+
+```bash
+ollama pull qwen2.5:7b
+ollama create text2sql -f Modelfile
+ollama run text2sql
+```
+
+Send the `CREATE TABLE` statements, a blank line, then the question (triple quotes allow several lines in `ollama run`):
+
+```
+"""Schema:
+CREATE TABLE orders (id INTEGER, customer TEXT, total REAL, created_at TEXT)
+
+Question: What are the five largest orders?"""
+```
+
+It replies with one SQLite query in a ```sql block. It does not run the query, and it is not a chat model: use `/clear` between questions.
+
 ## Results
 
 ### Real-world questions (the number that matters)
