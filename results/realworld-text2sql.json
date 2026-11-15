@@ -1,0 +1,1651 @@
+{
+ "summary": {
+  "overall": {
+   "n": 160,
+   "correct": 26,
+   "accuracy": 0.1625
+  },
+  "valid_sql_rate": 0.54375,
+  "by_db": {
+   "football": {
+    "n": 40,
+    "correct": 4,
+    "accuracy": 0.1
+   },
+   "shop": {
+    "n": 40,
+    "correct": 10,
+    "accuracy": 0.25
+   },
+   "school": {
+    "n": 40,
+    "correct": 7,
+    "accuracy": 0.175
+   },
+   "hr": {
+    "n": 40,
+    "correct": 5,
+    "accuracy": 0.125
+   }
+  },
+  "by_level": {
+   "easy": {
+    "n": 48,
+    "correct": 12,
+    "accuracy": 0.25
+   },
+   "medium": {
+    "n": 64,
+    "correct": 9,
+    "accuracy": 0.140625
+   },
+   "hard": {
+    "n": 48,
+    "correct": 5,
+    "accuracy": 0.10416666666666667
+   }
+  }
+ },
+ "results": [
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "How many clubs do we have on record?",
+   "answer": "SELECT COUNT(*) FROM clubs",
+   "output": "```sql\nSELECT COUNT(DISTINCT league_id) FROM leagues\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "How many goalkeepers are there across all clubs?",
+   "answer": "SELECT COUNT(*) FROM players WHERE position = 'GK'",
+   "output": "```sql\nSELECT COUNT(*) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id WHERE T3.player_id IN (SELECT T4.club_id FROM players AS T4 JOIN clubs AS T3 ON T4.club_id = T3.club_id WHERE T3.name = 'GK')\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "Give me the names of the clubs founded before 1900.",
+   "answer": "SELECT name FROM clubs WHERE founded_year < 1900",
+   "output": "```sql\nSELECT T1.name FROM clubs AS T1 JOIN leagues AS T2 ON T1.club_id = T2.league_id WHERE T2.country = 'UK' AND T1.founded_year < 1900\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "What's the largest stadium capacity of any club?",
+   "answer": "SELECT MAX(capacity) FROM clubs",
+   "output": "```sql\nSELECT MAX(t1.capacity) FROM clubs AS t1 JOIN goals AS t2 ON t1.club_id = t2.club_id JOIN matches AS t3 ON t2.match_id = t3.match_id ORDER BY t1.capacity DESC LIMIT 1\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "How many Brazilian players are there?",
+   "answer": "SELECT COUNT(*) FROM players WHERE nationality = 'Brazil'",
+   "output": "```sql\nSELECT COUNT(*) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id JOIN players AS T4 ON T3.player_id = T4.player_id WHERE T1.country = \"Brazil\" AND T4.position = \"GK\"\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "How many matches finished 0-0?",
+   "answer": "SELECT COUNT(*) FROM matches WHERE home_score = 0 AND away_score = 0",
+   "output": "```sql\nSELECT COUNT(*) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id WHERE T3.player_id = T1.club_id AND T3.club_id = T1.club_id AND T2.match_date = \"0-0\" AND T3.is_penalty = 0\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.club_id"
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "How many goals came from the penalty spot?",
+   "answer": "SELECT COUNT(*) FROM goals WHERE is_penalty = 1",
+   "output": "```sql\nSELECT COUNT(*) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id JOIN players AS T4 ON T3.player_id = T4.player_id WHERE T1.country = 'Penalty' AND T3.is_penalty = 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "Which leagues are based in England? Just the names please.",
+   "answer": "SELECT name FROM leagues WHERE country = 'England'",
+   "output": "```sql\nSELECT DISTINCT T1.name FROM leagues AS T1 JOIN clubs AS T2 ON T1.league_id = T2.club_id WHERE T2.country = \"England\"\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.country"
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "For how many players do we not know a market value?",
+   "answer": "SELECT COUNT(*) FROM players WHERE market_value_eur IS NULL",
+   "output": "```sql\nSELECT COUNT(*) FROM players WHERE NOT market_value_eur\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "How many matches were played in the 2024-25 season?",
+   "answer": "SELECT COUNT(*) FROM matches WHERE season = '2024-25'",
+   "output": "```sql\nSELECT COUNT(*) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id WHERE T2.season = \"2024-25\" AND T3.is_penalty = 0\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "What was the biggest crowd at a single match?",
+   "answer": "SELECT MAX(attendance) FROM matches",
+   "output": "```sql\nSELECT MAX(attendance) FROM matches\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "easy",
+   "question": "How many goals were scored after the 80th minute?",
+   "answer": "SELECT COUNT(*) FROM goals WHERE minute > 80",
+   "output": "```sql\nSELECT COUNT(*) FROM players AS T1 JOIN matches AS T2 ON T1.club_id = T2.home_club_id JOIN goals AS T3 ON T2.match_id = T3.match_id WHERE T3.minute > 80 AND T3.is_penalty = 0\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "How many clubs does each league have? Show the league name and the number of clubs.",
+   "answer": "SELECT l.name, COUNT(*) FROM leagues l JOIN clubs c ON c.league_id = l.league_id GROUP BY l.league_id",
+   "output": "```sql\nSELECT T1.name, COUNT(*) FROM leagues AS T1 JOIN clubs AS T2 ON T1.league_id = T2.club_id GROUP BY T1.league_id\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "Who are the five most valuable players? List their names from most valuable down, with ties in alphabetical order.",
+   "answer": "SELECT name FROM players WHERE market_value_eur IS NOT NULL ORDER BY market_value_eur DESC, name LIMIT 5",
+   "output": "```sql\nSELECT T1.name FROM players AS T1 JOIN goals AS T2 ON T1.player_id = T2.player_id JOIN matches AS T3 ON T2.match_id = T3.match_id ORDER BY T1.market_value_eur DESC LIMIT 5\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "Which player has scored the most goals? Give the name, and if there's a tie take the first alphabetically.",
+   "answer": "SELECT p.name FROM goals g JOIN players p ON p.player_id = g.player_id GROUP BY p.player_id ORDER BY COUNT(*) DESC, p.name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM players AS T1 JOIN goals AS T2 ON T1.player_id = T2.player_id JOIN matches AS T3 ON T2.match_id = T3.match_id WHERE T3.home_club_id = T2.club_id GROUP BY T1.name ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "Show the top three clubs by goals scored, with each club's name and goal count, highest first and ties alphabetical.",
+   "answer": "SELECT c.name, COUNT(*) AS goal_count FROM goals g JOIN clubs c ON c.club_id = g.club_id GROUP BY c.club_id ORDER BY goal_count DESC, c.name LIMIT 3",
+   "output": "```sql\nSELECT T1.name, COUNT(*) FROM clubs AS T1 JOIN goals AS T2 ON T1.club_id = T2.club_id JOIN matches AS T3 ON T2.match_id = T3.match_id GROUP BY T1.club_id ORDER BY SUM(T2.is_penalty) DESC LIMIT 3\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "What's the average attendance in each league? Show the league name and the average rounded to the nearest whole number.",
+   "answer": "SELECT l.name, ROUND(AVG(m.attendance)) FROM matches m JOIN leagues l ON l.league_id = m.league_id GROUP BY l.league_id",
+   "output": "```sql\nSELECT AVG(T2.attendance), T1.name FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id GROUP BY T1.name ORDER BY T1.tier\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "How many players do we have in each position? Show the position and the count.",
+   "answer": "SELECT position, COUNT(*) FROM players GROUP BY position",
+   "output": "```sql\nSELECT T1.position, COUNT(*) FROM players AS T1 JOIN goals AS T2 ON T1.player_id = T2.player_id GROUP BY T1.position\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "Which nationality is most common among players? If tied, take the first alphabetically.",
+   "answer": "SELECT nationality FROM players GROUP BY nationality ORDER BY COUNT(*) DESC, nationality LIMIT 1",
+   "output": "```sql\nSELECT T1.nationality FROM players AS T1 JOIN goals AS T2 ON T1.player_id = T2.player_id GROUP BY T1.nationality ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "List the names of the forwards at Kingsbridge Rovers.",
+   "answer": "SELECT p.name FROM players p JOIN clubs c ON c.club_id = p.club_id WHERE c.name = 'Kingsbridge Rovers' AND p.position = 'FWD'",
+   "output": "```sql\nSELECT T1.name FROM players AS T1 JOIN matches AS T2 ON T1.club_id = T2.home_club_id JOIN clubs AS T3 ON T2.away_club_id = T3.club_id WHERE T3.name = \"Kingsbridge Rovers\" AND T2.season = \"2013\" AND T2.match_date = \"2013-08-24\" AND T1.shirt_number > 9 AND T1.nationality = \"English\" AND T1.birth_date = \"1985-06-17\" AND T2.is_penalty = 0\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.is_penalty"
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "What is the total known market value of the Valdoro CF squad?",
+   "answer": "SELECT SUM(p.market_value_eur) FROM players p JOIN clubs c ON c.club_id = p.club_id WHERE c.name = 'Valdoro CF'",
+   "output": "```sql\nSELECT SUM(T2.market_value_eur) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN clubs AS T3 ON T2.home_club_id = T3.club_id JOIN players AS T4 ON T2.away_club_id = T4.player_id WHERE T1.name = \"Valdoro CF\" AND T3.city = \"Valdoro\" AND T4.position = \"FWD\" AND T4.nationality = \"Spanish\" AND T2.match_date = \"2013-09-07\" AND T2.is_penalty = 0\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.market_value_eur"
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "How many goals were scored in each season? Show the season and the number of goals.",
+   "answer": "SELECT m.season, COUNT(*) FROM goals g JOIN matches m ON m.match_id = g.match_id GROUP BY m.season",
+   "output": "```sql\nSELECT season, COUNT(*) FROM matches GROUP BY league_id\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "On which dates did Marlow Athletic play at home? Oldest first.",
+   "answer": "SELECT m.match_date FROM matches m JOIN clubs c ON c.club_id = m.home_club_id WHERE c.name = 'Marlow Athletic' ORDER BY m.match_date",
+   "output": "```sql\nSELECT T1.match_date FROM matches AS T1 JOIN clubs AS T2 ON T1.home_club_id = T2.club_id JOIN players AS T3 ON T1.player_id = T3.player_id WHERE T2.name = \"Marlow Athletic\" ORDER BY T1.match_date DESC\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.player_id"
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "Which club in Serie Adriatica has the biggest stadium? Give the club name, and if tied the first alphabetically.",
+   "answer": "SELECT c.name FROM clubs c JOIN leagues l ON l.league_id = c.league_id WHERE l.name = 'Serie Adriatica' ORDER BY c.capacity DESC, c.name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM clubs AS T1 JOIN leagues AS T2 ON T1.club_id = T2.league_id JOIN goals AS T3 ON T3.match_id = T2.match_id WHERE T2.country = \"Serie Adriatica\" ORDER BY T1.stadium DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.match_id"
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "Who is the youngest player? Give the name, and if two share a birthday take the first alphabetically.",
+   "answer": "SELECT name FROM players ORDER BY birth_date DESC, name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM players AS T1 JOIN goals AS T2 ON T1.player_id = T2.player_id JOIN matches AS T3 ON T2.match_id = T3.match_id WHERE T1.birth_date = (SELECT T3.match_date FROM matches AS T3 JOIN clubs AS T4 ON T3.home_club_id = T4.club_id ORDER BY T1.birth_date LIMIT 1)\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.birth_date"
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "Who wears the number 10 shirt? Show each player's name and their club's name.",
+   "answer": "SELECT p.name, c.name FROM players p JOIN clubs c ON c.club_id = p.club_id WHERE p.shirt_number = 10",
+   "output": "```sql\nSELECT T1.name, T2.name FROM players AS T1 JOIN clubs AS T2 ON T1.club_id = T2.club_id WHERE T1.shirt_number = 10\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "How many home wins were there in each league? Show the league name and the count.",
+   "answer": "SELECT l.name, COUNT(*) FROM matches m JOIN leagues l ON l.league_id = m.league_id WHERE m.home_score > m.away_score GROUP BY l.league_id",
+   "output": "```sql\nSELECT T1.name, COUNT(*) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id WHERE T3.club_id = T2.home_club_id AND T3.is_penalty = 0 GROUP BY T1.name\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "medium",
+   "question": "Using the final scores, how many goals were scored in total in each league? Show the league name and the total.",
+   "answer": "SELECT l.name, SUM(m.home_score + m.away_score) FROM matches m JOIN leagues l ON l.league_id = m.league_id GROUP BY l.league_id",
+   "output": "```sql\nSELECT T1.name, SUM(T4.home_score) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id GROUP BY T1.name\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T4.home_score"
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Which club scored the most away goals in 2024? Give the club name, and if tied the first alphabetically.",
+   "answer": "SELECT c.name FROM goals g JOIN matches m ON m.match_id = g.match_id JOIN clubs c ON c.club_id = g.club_id WHERE g.club_id = m.away_club_id AND strftime('%Y', m.match_date) = '2024' GROUP BY c.club_id ORDER BY COUNT(*) DESC, c.name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM clubs AS T1 JOIN goals AS T2 ON T1.club_id = T2.club_id JOIN matches AS T3 ON T2.match_id = T3.match_id WHERE T3.season = 2024 ORDER BY T2.minute DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Which clubs have scored more than 8 goals in total? List the club names.",
+   "answer": "SELECT c.name FROM goals g JOIN clubs c ON c.club_id = g.club_id GROUP BY c.club_id HAVING COUNT(*) > 8",
+   "output": "```sql\nSELECT T1.name FROM clubs AS T1 JOIN goals AS T2 ON T1.club_id = T2.club_id WHERE T2.is_penalty = 0 GROUP BY T1.club_id HAVING SUM(T2.player_id) > 8\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Who is the top scorer in each league? Show the league name, the player's name and their goals, and break ties alphabetically by player.",
+   "answer": "SELECT league, player, goal_count FROM (SELECT l.name AS league, p.name AS player, COUNT(*) AS goal_count, ROW_NUMBER() OVER (PARTITION BY l.league_id ORDER BY COUNT(*) DESC, p.name) AS rn FROM goals g JOIN players p ON p.player_id = g.player_id JOIN clubs c ON c.club_id = p.club_id JOIN leagues l ON l.league_id = c.league_id GROUP BY l.league_id, p.player_id) WHERE rn = 1",
+   "output": "```sql\nSELECT T1.name, T2.name, SUM(T3.home_score) FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id JOIN clubs AS T4 ON T2.home_club_id = T4.club_id GROUP BY T1.name ORDER BY T2.match_date\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.name"
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "What percentage of matches were won by the home side? Round to one decimal place.",
+   "answer": "SELECT ROUND(100.0 * SUM(home_score > away_score) / COUNT(*), 1) FROM matches",
+   "output": "```sql\nSELECT COUNT(*) FROM matches WHERE home_club_id = (SELECT club_id FROM clubs WHERE tier = (SELECT tier FROM leagues WHERE name = 'Premier League') AND city = 'London' AND founded_year = 1900) AND away_club_id = (SELECT club_id FROM clubs WHERE tier = (SELECT tier FROM leagues WHERE name = 'Premier League') AND city = 'Manchester' AND founded_year = 1900) AND home_score > away_score FROM matches\n```",
+   "correct": false,
+   "runs": false,
+   "error": "near \"FROM\": syntax error"
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Which clubs have never scored a penalty? List the club names.",
+   "answer": "SELECT name FROM clubs WHERE club_id NOT IN (SELECT club_id FROM goals WHERE is_penalty = 1)",
+   "output": "```sql\nSELECT name FROM leagues WHERE NOT league_id IN (SELECT club_id FROM goals WHERE is_penalty = 1)\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Which players scored in both the 2023-24 and 2024-25 seasons? List their names.",
+   "answer": "SELECT p.name FROM goals g JOIN matches m ON m.match_id = g.match_id JOIN players p ON p.player_id = g.player_id GROUP BY p.player_id HAVING COUNT(DISTINCT m.season) = 2",
+   "output": "```sql\nSELECT T1.name FROM players AS T1 JOIN goals AS T2 ON T1.player_id = T2.player_id JOIN matches AS T3 ON T2.match_id = T3.match_id WHERE T3.season = \"2023-24\" INTERSECT SELECT T1.name FROM players AS T1 JOIN goals AS T2 ON T1.player_id = T2.player_id JOIN matches AS T3 ON T2.match_id = T3.match_id WHERE T3.season = \"2024-25\"\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Which calendar month of 2024 had the most goals? Give the two-digit month number, and if tied the earliest month.",
+   "answer": "SELECT strftime('%m', m.match_date) AS month FROM goals g JOIN matches m ON m.match_id = g.match_id WHERE strftime('%Y', m.match_date) = '2024' GROUP BY month ORDER BY COUNT(*) DESC, month LIMIT 1",
+   "output": "```sql\nSELECT 2 AS _digit_month FROM leagues AS T1 JOIN matches AS T2 ON T1.league_id = T2.league_id JOIN goals AS T3 ON T2.match_id = T3.match_id WHERE T3.is_penalty = 0 AND T2.match_date LIKE \"2024/%\" GROUP BY T2.match_id ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "In matches with an above-average crowd, what was the average number of goals per match? Round to two decimals.",
+   "answer": "SELECT ROUND(AVG(home_score + away_score), 2) FROM matches WHERE attendance > (SELECT AVG(attendance) FROM matches)",
+   "output": "```sql\nSELECT AVG(T2.home_score) FROM matches AS T1 JOIN clubs AS T2 ON T1.home_club_id = T2.club_id JOIN players AS T3 ON T1.player_id = T3.player_id WHERE T1.attendance > (SELECT AVG(T1.attendance) FROM matches)\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.home_score"
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Which match had the biggest winning margin? Show its date, the home club's name and the away club's name. If several tie, take the earliest date, then the lowest match id.",
+   "answer": "SELECT m.match_date, h.name, a.name FROM matches m JOIN clubs h ON h.club_id = m.home_club_id JOIN clubs a ON a.club_id = m.away_club_id ORDER BY ABS(m.home_score - m.away_score) DESC, m.match_date, m.match_id LIMIT 1",
+   "output": "```sql\nSELECT match_id, T1.name, T2.name FROM clubs AS T1 JOIN matches AS T2 ON T1.club_id = T2.home_club_id JOIN goals AS T3 ON T2.match_id = T3.match_id ORDER BY T2.match_date DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "ambiguous column name: match_id"
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Among players who have scored at least once, how many have more goals than the average for that group?",
+   "answer": "WITH t AS (SELECT player_id, COUNT(*) AS n FROM goals GROUP BY player_id) SELECT COUNT(*) FROM t WHERE n > (SELECT AVG(n) FROM t)",
+   "output": "```sql\nSELECT COUNT(*) FROM players WHERE player_id IN (SELECT T1.club_id FROM clubs AS T1 JOIN goals AS T2 ON T1.club_id = T2.club_id WHERE T2.is_penalty = 0 GROUP BY T1.club_id HAVING AVG(T2.minute) > (SELECT AVG(T2.minute) FROM players WHERE T1.club_id = T2.club_id)\n```",
+   "correct": false,
+   "runs": false,
+   "error": "incomplete input"
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Build the 2023-24 Albion Premier League table using 3 points for a win and 1 for a draw. Show each club that played with its points, highest first and ties alphabetical.",
+   "answer": "WITH r AS (SELECT m.home_club_id AS club, CASE WHEN m.home_score > m.away_score THEN 3 WHEN m.home_score = m.away_score THEN 1 ELSE 0 END AS pts FROM matches m JOIN leagues l ON l.league_id = m.league_id WHERE m.season = '2023-24' AND l.name = 'Albion Premier League' UNION ALL SELECT m.away_club_id, CASE WHEN m.away_score > m.home_score THEN 3 WHEN m.away_score = m.home_score THEN 1 ELSE 0 END FROM matches m JOIN leagues l ON l.league_id = m.league_id WHERE m.season = '2023-24' AND l.name = 'Albion Premier League') SELECT c.name, SUM(r.pts) AS points FROM r JOIN clubs c ON c.club_id = r.club GROUP BY c.club_id ORDER BY points DESC, c.name",
+   "output": "```sql\nSELECT T1.club_id, T1.name FROM clubs AS T1 JOIN matches AS T2 ON T1.club_id = T2.home_club_id JOIN goals AS T3 ON T2.match_id = T3.match_id WHERE T2.season = \"2023-24\" AND T2.match_date = \"2023-24\" GROUP BY T1.club_id ORDER BY T1.name DESC\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "football",
+   "level": "hard",
+   "question": "Among clubs with at least 5 goals, which gets the largest share of its goals from penalties? Show the club name and the percentage rounded to one decimal, with ties broken alphabetically.",
+   "answer": "SELECT c.name, ROUND(100.0 * SUM(g.is_penalty) / COUNT(*), 1) AS pct FROM goals g JOIN clubs c ON c.club_id = g.club_id GROUP BY c.club_id HAVING COUNT(*) >= 5 ORDER BY 100.0 * SUM(g.is_penalty) / COUNT(*) DESC, c.name LIMIT 1",
+   "output": "```sql\nSELECT T1.name, (SELECT SUM(T4.is_penalty) FROM matches AS T2 JOIN goals AS T3 ON T2.match_id = T3.match_id JOIN clubs AS T1 ON T2.home_club_id = T1.club_id GROUP BY T1.club_id HAVING COUNT(*) >= 5 ORDER BY SUM(T4.is_penalty) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "incomplete input"
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "How many customers do we have?",
+   "answer": "SELECT COUNT(*) FROM customers",
+   "output": "```sql\nSELECT COUNT(DISTINCT customer_id) FROM customers\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "How many customers haven't given us a phone number?",
+   "answer": "SELECT COUNT(*) FROM customers WHERE phone IS NULL",
+   "output": "```sql\nSELECT COUNT(*) FROM customers WHERE NOT phone\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "Which products cost less than 20? Just the names.",
+   "answer": "SELECT name FROM products WHERE price < 20",
+   "output": "```sql\nSELECT T1.name FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id WHERE T3.status = 'processing' AND T2.discount > 0 AND T1.price < 20\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "What's the price of our most expensive product?",
+   "answer": "SELECT MAX(price) FROM products",
+   "output": "```sql\nSELECT T1.name FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id ORDER BY T1.price DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "How many products are out of stock?",
+   "answer": "SELECT COUNT(*) FROM products WHERE stock = 0",
+   "output": "```sql\nSELECT COUNT(*) FROM products WHERE discontinued = 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "How many orders got cancelled?",
+   "answer": "SELECT COUNT(*) FROM orders WHERE status = 'cancelled'",
+   "output": "```sql\nSELECT COUNT(*) FROM orders WHERE status = 'cancelled'\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "List the names of our customers in Berlin.",
+   "answer": "SELECT name FROM customers WHERE city = 'Berlin'",
+   "output": "```sql\nSELECT T1.name FROM customers AS T1 JOIN order_items AS T2 ON T1.customer_id = T2.order_id JOIN products AS T3 ON T2.product_id = T3.product_id WHERE T1.city = 'Berlin' AND T3.discontinued = 0\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "How many products do we sell in the Books category?",
+   "answer": "SELECT COUNT(*) FROM products WHERE category = 'Books'",
+   "output": "```sql\nSELECT COUNT(*) FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id JOIN products AS T4 ON T3.product_id = T4.product_id WHERE T4.category = 'Books'\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "What's the average product price, rounded to two decimals?",
+   "answer": "SELECT ROUND(AVG(price), 2) FROM products",
+   "output": "```sql\nSELECT AVG(T2.price) FROM orders AS T1 JOIN order_items AS T2 ON T1.order_id = T2.order_id JOIN products AS T3 ON T2.product_id = T3.product_id GROUP BY T1.customer_id ORDER BY T1.signup_date LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.price"
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "How many orders were placed in 2024?",
+   "answer": "SELECT COUNT(*) FROM orders WHERE strftime('%Y', order_date) = '2024'",
+   "output": "```sql\nSELECT COUNT(*) FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id WHERE T2.order_date LIKE \"2024%\"\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "How many products have been discontinued?",
+   "answer": "SELECT COUNT(*) FROM products WHERE discontinued = 1",
+   "output": "```sql\nSELECT SUM(discontinued) FROM products\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "easy",
+   "question": "How many orders shipped for free?",
+   "answer": "SELECT COUNT(*) FROM orders WHERE shipping_cost = 0",
+   "output": "```sql\nSELECT COUNT(*) FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id WHERE T1.country = 'Free' AND T2.status = 'shipped' AND T3.discount > 0\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "How many orders are in each status? Show the status and the count.",
+   "answer": "SELECT status, COUNT(*) FROM orders GROUP BY status",
+   "output": "```sql\nSELECT T1.status, COUNT(*) FROM orders AS T1 JOIN order_items AS T2 ON T1.order_id = T2.order_id GROUP BY T1.status\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "How many customers do we have per country? Show country and count, biggest first and ties alphabetical.",
+   "answer": "SELECT country, COUNT(*) AS n FROM customers GROUP BY country ORDER BY n DESC, country",
+   "output": "```sql\nSELECT COUNT(*), T1.country FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id GROUP BY T1.country ORDER BY COUNT(*) DESC\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.country"
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "What are our five best-selling products by units sold? Show the product name and total units, highest first with ties alphabetical.",
+   "answer": "SELECT p.name, SUM(oi.quantity) AS units FROM order_items oi JOIN products p ON p.product_id = oi.product_id GROUP BY p.product_id ORDER BY units DESC, p.name LIMIT 5",
+   "output": "```sql\nSELECT T1.name, SUM(T3.quantity) FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id GROUP BY T1.product_id ORDER BY SUM(T3.quantity) DESC LIMIT 5\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.quantity"
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "How much revenue has each category made across all orders, after line discounts? Show the category and the revenue rounded to two decimals.",
+   "answer": "SELECT p.category, ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount)), 2) FROM order_items oi JOIN products p ON p.product_id = oi.product_id GROUP BY p.category",
+   "output": "```sql\nSELECT T1.category, SUM(T4.revenue) FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id WHERE T3.status = 'processing' OR T3.status = 'shipped' OR T3.status = 'delivered' OR T3.status = 'cancelled' OR T3.status = 'returned' GROUP BY T1.category ORDER BY T4.revenue\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T4.revenue"
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "What's the average price in each category? Show the category and the average rounded to two decimals.",
+   "answer": "SELECT category, ROUND(AVG(price), 2) FROM products GROUP BY category",
+   "output": "```sql\nSELECT T1.category, AVG(T3.price) FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id GROUP BY T1.category\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.price"
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "Which products has Priya Haddad ordered? List each product name once.",
+   "answer": "SELECT DISTINCT p.name FROM customers c JOIN orders o ON o.customer_id = c.customer_id JOIN order_items oi ON oi.order_id = o.order_id JOIN products p ON p.product_id = oi.product_id WHERE c.name = 'Priya Haddad'",
+   "output": "```sql\nSELECT DISTINCT T1.name FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id WHERE T3.customer_id = (SELECT T4.customer_id FROM customers AS T4 JOIN orders AS T3 ON T4.customer_id = T3.customer_id WHERE T3.order_date = '2021-06-01' AND T3.status = 'processing')\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "Which customer has placed the most orders? Give the name, and if tied the first alphabetically.",
+   "answer": "SELECT c.name FROM orders o JOIN customers c ON c.customer_id = o.customer_id GROUP BY c.customer_id ORDER BY COUNT(*) DESC, c.name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id GROUP BY T1.customer_id ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "How many orders came from each city? Show the customer's city and the count.",
+   "answer": "SELECT c.city, COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id GROUP BY c.city",
+   "output": "```sql\nSELECT T1.city, COUNT(*) FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id GROUP BY T1.city\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "What's the most expensive product in Electronics? Give the name, and if tied the first alphabetically.",
+   "answer": "SELECT name FROM products WHERE category = 'Electronics' ORDER BY price DESC, name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id WHERE T1.category = 'Electronics' ORDER BY T1.name DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "Which order has the most line items? Show the order id and the number of items, and if tied the lowest order id.",
+   "answer": "SELECT order_id, COUNT(*) AS n FROM order_items GROUP BY order_id ORDER BY n DESC, order_id LIMIT 1",
+   "output": "```sql\nSELECT T1.order_id, COUNT(*) FROM orders AS T1 JOIN order_items AS T2 ON T1.order_id = T2.order_id GROUP BY T1.order_id ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "How many Yoga Mats have we sold in total?",
+   "answer": "SELECT SUM(oi.quantity) FROM order_items oi JOIN products p ON p.product_id = oi.product_id WHERE p.name = 'Yoga Mat'",
+   "output": "```sql\nSELECT SUM(T2.quantity) FROM orders AS T1 JOIN order_items AS T2 ON T1.order_id = T2.order_id JOIN products AS T3 ON T2.product_id = T3.product_id WHERE T1.customer_id = 1 AND T3.country = 'USA' AND T1.signup_date = '2018-01-01' AND T1.status = 'processing' AND T2.discount > 0\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.country"
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "Show the ten most recent orders with their id and date, newest first, and the higher order id first on the same day.",
+   "answer": "SELECT order_id, order_date FROM orders ORDER BY order_date DESC, order_id DESC LIMIT 10",
+   "output": "```sql\nSELECT T1.order_id, T1.order_date FROM orders AS T1 JOIN order_items AS T2 ON T1.order_id = T2.order_id JOIN products AS T3 ON T2.product_id = T3.product_id ORDER BY T1.order_date DESC LIMIT 10\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "Which customers have had an order cancelled? List each name once.",
+   "answer": "SELECT DISTINCT c.name FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'cancelled'",
+   "output": "```sql\nSELECT DISTINCT T1.name FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id WHERE T2.status = 'cancelled'\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "How much have we charged for shipping per country? Show the country and the total rounded to two decimals.",
+   "answer": "SELECT c.country, ROUND(SUM(o.shipping_cost), 2) FROM orders o JOIN customers c ON c.customer_id = o.customer_id GROUP BY c.country",
+   "output": "```sql\nSELECT T1.country, SUM(T4.shipping_cost) FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id GROUP BY T1.country\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T4.shipping_cost"
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "How many different customers ordered something in 2023?",
+   "answer": "SELECT COUNT(DISTINCT customer_id) FROM orders WHERE strftime('%Y', order_date) = '2023'",
+   "output": "```sql\nSELECT COUNT(DISTINCT T1.customer_id) FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id WHERE T2.order_date LIKE \"2023%\"\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "medium",
+   "question": "Which three cities have the most customers? List the city names, most customers first and ties alphabetical.",
+   "answer": "SELECT city FROM customers GROUP BY city ORDER BY COUNT(*) DESC, city LIMIT 3",
+   "output": "```sql\nSELECT T1.city, COUNT(*) FROM customers AS T1 JOIN order_items AS T2 ON T1.customer_id = T2.order_id GROUP BY T1.city ORDER BY COUNT(*) DESC LIMIT 3\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "Who has signed up but never placed an order? List their names.",
+   "answer": "SELECT name FROM customers WHERE customer_id NOT IN (SELECT customer_id FROM orders)",
+   "output": "```sql\nSELECT name FROM customers WHERE NOT customer_id IN (SELECT customer_id FROM orders)\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "Which products have never been sold? List the names.",
+   "answer": "SELECT p.name FROM products p LEFT JOIN order_items oi ON oi.product_id = p.product_id WHERE oi.order_item_id IS NULL",
+   "output": "```sql\nSELECT name FROM products WHERE NOT customer_id IN (SELECT product_id FROM order_items)\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: customer_id"
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "What was the revenue each month in 2024, after line discounts and leaving out cancelled orders? Show the month as YYYY-MM and the revenue rounded to two decimals, in date order.",
+   "answer": "SELECT strftime('%Y-%m', o.order_date) AS month, ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount)), 2) FROM orders o JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status <> 'cancelled' AND strftime('%Y', o.order_date) = '2024' GROUP BY month ORDER BY month",
+   "output": "```sql\nSELECT SUM(T2.revenue), T1.month AS YYYY_MM FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id JOIN products AS T4 ON T3.product_id = T4.product_id WHERE T2.status <> 'cancelled' GROUP BY T1.month ORDER BY T2.order_date\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.revenue"
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "Who is our biggest spender, counting only delivered orders and line discounts? Show the name and the amount rounded to two decimals, with ties alphabetical.",
+   "answer": "SELECT c.name, ROUND(SUM(oi.quantity * oi.unit_price * (1 - oi.discount)), 2) AS spent FROM customers c JOIN orders o ON o.customer_id = c.customer_id JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status = 'delivered' GROUP BY c.customer_id ORDER BY SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) DESC, c.name LIMIT 1",
+   "output": "```sql\nSELECT T1.name, SUM(T4.shipping_cost) FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id JOIN products AS T4 ON T3.product_id = T4.product_id WHERE T2.status = 'delivered' ORDER BY SUM(T4.shipping_cost) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T4.shipping_cost"
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "What's the best seller by units in each category? Show the category, the product name and the units, breaking ties alphabetically by product.",
+   "answer": "SELECT category, name, units FROM (SELECT p.category, p.name, SUM(oi.quantity) AS units, ROW_NUMBER() OVER (PARTITION BY p.category ORDER BY SUM(oi.quantity) DESC, p.name) AS rn FROM order_items oi JOIN products p ON p.product_id = oi.product_id GROUP BY p.product_id) WHERE rn = 1",
+   "output": "```sql\nSELECT T1.category, T2.name, SUM(T3.quantity) FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id GROUP BY T1.category ORDER BY T2.name\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.name"
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "What percentage of orders ended up cancelled or returned? Round to one decimal.",
+   "answer": "SELECT ROUND(100.0 * SUM(status IN ('cancelled', 'returned')) / COUNT(*), 1) FROM orders",
+   "output": "```sql\nSELECT COUNT(*) FROM orders WHERE status = 'cancelled' OR status = 'returned' FROM customers AS T1 JOIN order_items AS T2 ON T1.customer_id = T2.order_id JOIN products AS T3 ON T2.product_id = T3.product_id GROUP BY T1.customer_id ORDER BY T1.name\n```",
+   "correct": false,
+   "runs": false,
+   "error": "near \"FROM\": syntax error"
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "Which customers have placed at least three orders? List their names.",
+   "answer": "SELECT c.name FROM customers c JOIN orders o ON o.customer_id = c.customer_id GROUP BY c.customer_id HAVING COUNT(*) >= 3",
+   "output": "```sql\nSELECT T1.name FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id WHERE T2.status = 'processing' OR T2.status = 'shipped' OR T2.status = 'delivered' OR T2.status = 'cancelled' OR T2.status = 'returned' GROUP BY T1.customer_id HAVING COUNT(*) >= 3\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "Which products are priced above the average for their own category? List the names.",
+   "answer": "SELECT p.name FROM products p WHERE p.price > (SELECT AVG(x.price) FROM products x WHERE x.category = p.category)",
+   "output": "```sql\nSELECT T1.name FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id WHERE T3.status = 'processing' AND T2.discount > (SELECT AVG(T1.price) FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id GROUP BY T1.category HAVING AVG(T1.price) < T2.discount)\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "Which customers have bought from both the Books and Toys categories? List their names.",
+   "answer": "SELECT c.name FROM customers c JOIN orders o ON o.customer_id = c.customer_id JOIN order_items oi ON oi.order_id = o.order_id JOIN products p ON p.product_id = oi.product_id WHERE p.category IN ('Books', 'Toys') GROUP BY c.customer_id HAVING COUNT(DISTINCT p.category) = 2",
+   "output": "```sql\nSELECT T1.name FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id WHERE T3.category = 'Books' INTERSECT SELECT T1.name FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id WHERE T3.category = 'Toys'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.category"
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "What's the average order value, counting items after line discounts but not shipping? Round to two decimals.",
+   "answer": "SELECT ROUND(AVG(total), 2) FROM (SELECT SUM(quantity * unit_price * (1 - discount)) AS total FROM order_items GROUP BY order_id)",
+   "output": "```sql\nSELECT AVG(T2.order_value) FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id JOIN products AS T4 ON T3.product_id = T4.product_id WHERE T1.country = 'line' AND T2.status <> 'shipped' AND T2.status <> 'delivered' AND T2.status <> 'cancelled' AND T2.status <> 'returned'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.order_value"
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "Which month of 2023 had the most orders? Give the two-digit month number, and if tied the earliest month.",
+   "answer": "SELECT strftime('%m', order_date) AS month FROM orders WHERE strftime('%Y', order_date) = '2023' GROUP BY month ORDER BY COUNT(*) DESC, month LIMIT 1",
+   "output": "```sql\nSELECT 2 AS _digit_month FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id JOIN order_items AS T3 ON T2.order_id = T3.order_id JOIN products AS T4 ON T3.product_id = T4.product_id WHERE T2.status = 'processing' OR T2.status = 'shipped' OR T2.status = 'delivered' OR T2.status = 'cancelled' OR T2.status = 'returned' GROUP BY T1.customer_id ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "shop",
+   "level": "hard",
+   "question": "What share of total revenue after line discounts does each category bring in? Show the category and the percentage rounded to one decimal, largest first and ties alphabetical.",
+   "answer": "SELECT p.category, ROUND(100.0 * SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) / (SELECT SUM(quantity * unit_price * (1 - discount)) FROM order_items), 1) AS pct FROM order_items oi JOIN products p ON p.product_id = oi.product_id GROUP BY p.category ORDER BY SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) DESC, p.category",
+   "output": "```sql\nSELECT T1.category, ROUND(T2.revenue) FROM products AS T1 JOIN order_items AS T2 ON T1.product_id = T2.product_id JOIN orders AS T3 ON T2.order_id = T3.order_id GROUP BY T1.category ORDER BY T1.name DESC\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.revenue"
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "How many students are there?",
+   "answer": "SELECT COUNT(*) FROM students",
+   "output": "```sql\nSELECT COUNT(*) FROM students\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "How many courses are worth 4 credits?",
+   "answer": "SELECT COUNT(*) FROM courses WHERE credits = 4",
+   "output": "```sql\nSELECT COUNT(*) FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T3.credits = 4\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.credits"
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "Who teaches in the Physics department? List the teachers' names.",
+   "answer": "SELECT name FROM teachers WHERE department = 'Physics'",
+   "output": "```sql\nSELECT DISTINCT T1.name FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T1.department = 'Physics'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.teacher_id"
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "What's the highest score anyone has received?",
+   "answer": "SELECT MAX(score) FROM grades",
+   "output": "```sql\nSELECT MAX(T2.score) FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T1.name = 'John Doe' AND T1.department = 'Math' AND T1.hire_date = '2015-01-01' AND T1.office = 'Room 101'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.score"
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "How many enrollments were dropped?",
+   "answer": "SELECT COUNT(*) FROM enrollments WHERE status = 'dropped'",
+   "output": "```sql\nSELECT COUNT(*) FROM enrollments WHERE status = 'dropped'\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "How many students are majoring in History?",
+   "answer": "SELECT COUNT(*) FROM students WHERE major = 'History'",
+   "output": "```sql\nSELECT COUNT(*) FROM students WHERE enrollment_year = 2013 AND major = 'History'\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "How many teachers don't have an office assigned?",
+   "answer": "SELECT COUNT(*) FROM teachers WHERE office IS NULL",
+   "output": "```sql\nSELECT COUNT(*) FROM teachers WHERE office = ''\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "What are the titles of the Biology courses?",
+   "answer": "SELECT title FROM courses WHERE department = 'Biology'",
+   "output": "```sql\nSELECT T1.title FROM courses AS T1 JOIN enrollments AS T2 ON T1.course_id = T2.course_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id JOIN teachers AS T4 ON T2.teacher_id = T4.teacher_id WHERE T4.department = 'Biology'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.teacher_id"
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "How many students started in 2023?",
+   "answer": "SELECT COUNT(*) FROM students WHERE enrollment_year = 2023",
+   "output": "```sql\nSELECT COUNT(*) FROM students WHERE enrollment_year = 2023\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "What's the average of all recorded scores, rounded to two decimals?",
+   "answer": "SELECT ROUND(AVG(score), 2) FROM grades",
+   "output": "```sql\nSELECT AVG(T2.score) FROM enrollments AS T1 JOIN grades AS T2 ON T1.enrollment_id = T2.enrollment_id JOIN courses AS T3 ON T1.course_id = T3.course_id JOIN teachers AS T4 ON T1.teacher_id = T4.teacher_id WHERE T4.name = 'John Doe' AND T3.department = 'Math' AND T1.term = 'Spring' AND T1.enrolled_on = '2013-09-01' AND T1.status = 'completed'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.teacher_id"
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "How many final exam grades have been recorded?",
+   "answer": "SELECT COUNT(*) FROM grades WHERE assessment = 'final'",
+   "output": "```sql\nSELECT COUNT(*) FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.course_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T3.assessment = 'final'\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "easy",
+   "question": "Which teachers were hired before 2010? Just their names.",
+   "answer": "SELECT name FROM teachers WHERE hire_date < '2010-01-01'",
+   "output": "```sql\nSELECT DISTINCT T1.name FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id WHERE T2.enrolled_on < '2010'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.teacher_id"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "How many students are there per major? Show the major and the count.",
+   "answer": "SELECT major, COUNT(*) FROM students GROUP BY major",
+   "output": "```sql\nSELECT T1.major, COUNT(*) FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id GROUP BY T1.major\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "What courses does Lina Salem teach? List the course titles.",
+   "answer": "SELECT c.title FROM courses c JOIN teachers t ON t.teacher_id = c.teacher_id WHERE t.name = 'Lina Salem'",
+   "output": "```sql\nSELECT T1.title FROM courses AS T1 JOIN enrollments AS T2 ON T1.course_id = T2.course_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id JOIN teachers AS T4 ON T2.teacher_id = T4.teacher_id WHERE T4.name = 'Lina Salem' AND T2.term = 'Spring' AND T2.enrolled_on = '2016-03-01' AND T2.status = 'completed'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.teacher_id"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "How many enrollments were there in each term? Show the term and the count.",
+   "answer": "SELECT term, COUNT(*) FROM enrollments GROUP BY term",
+   "output": "```sql\nSELECT T1.term, COUNT(*) FROM enrollments AS T1 JOIN grades AS T2 ON T1.enrollment_id = T2.enrollment_id GROUP BY T1.term\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "What's the average score for midterms and for finals? Show the assessment type and the average rounded to two decimals.",
+   "answer": "SELECT assessment, ROUND(AVG(score), 2) FROM grades GROUP BY assessment",
+   "output": "```sql\nSELECT AVG(T2.score), T1.assessment FROM grades AS T1 JOIN enrollments AS T2 ON T1.grade_id = T2.grade_id WHERE T2.status = 'completed' INTERSECT SELECT AVG(T2.score), T1.assessment FROM grades AS T1 JOIN enrollments AS T2 ON T1.grade_id = T2.grade_id WHERE T2.status = 'completed'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.score"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "Which five courses have the most enrollments? Show the title and the count, highest first and ties alphabetical.",
+   "answer": "SELECT c.title, COUNT(*) AS n FROM enrollments e JOIN courses c ON c.course_id = e.course_id GROUP BY c.course_id ORDER BY n DESC, c.title LIMIT 5",
+   "output": "```sql\nSELECT T1.title, COUNT(*) FROM courses AS T1 JOIN enrollments AS T2 ON T1.course_id = T2.course_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T2.status = 'completed' GROUP BY T1.title ORDER BY COUNT(*) DESC LIMIT 5\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "How many credits does each department offer in total? Show the department and the sum.",
+   "answer": "SELECT department, SUM(credits) FROM courses GROUP BY department",
+   "output": "```sql\nSELECT T1.department, SUM(T2.credits) FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id GROUP BY T1.department\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.credits"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "Which students have enrolled in Databases? List their names.",
+   "answer": "SELECT s.name FROM students s JOIN enrollments e ON e.student_id = s.student_id JOIN courses c ON c.course_id = e.course_id WHERE c.title = 'Databases'",
+   "output": "```sql\nSELECT T1.name FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id JOIN courses AS T4 ON T3.course_id = T4.course_id WHERE T4.department = 'Databases'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.course_id"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "Which teacher teaches the most courses? Give the name, and if tied the first alphabetically.",
+   "answer": "SELECT t.name FROM teachers t JOIN courses c ON c.teacher_id = t.teacher_id GROUP BY t.teacher_id ORDER BY COUNT(*) DESC, t.name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id GROUP BY T1.name ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.teacher_id"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "What was the average final exam score in Algorithms, rounded to two decimals?",
+   "answer": "SELECT ROUND(AVG(g.score), 2) FROM grades g JOIN enrollments e ON e.enrollment_id = g.enrollment_id JOIN courses c ON c.course_id = e.course_id WHERE c.title = 'Algorithms' AND g.assessment = 'final'",
+   "output": "```sql\nSELECT AVG(T2.score) FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id JOIN courses AS T4 ON T2.course_id = T4.course_id WHERE T1.name = 'Algorithms' AND T2.status = 'completed'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.score"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "What are the five highest final exam scores? Show the student's name and the score, highest first with ties alphabetical.",
+   "answer": "SELECT s.name, g.score FROM grades g JOIN enrollments e ON e.enrollment_id = g.enrollment_id JOIN students s ON s.student_id = e.student_id WHERE g.assessment = 'final' ORDER BY g.score DESC, s.name LIMIT 5",
+   "output": "```sql\nSELECT T1.name, T2.score FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id JOIN courses AS T4 ON T2.course_id = T4.course_id WHERE T2.status = 'completed' ORDER BY T2.score DESC LIMIT 5\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.score"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "How many teachers does each department have? Show the department and the count.",
+   "answer": "SELECT department, COUNT(*) FROM teachers GROUP BY department",
+   "output": "```sql\nSELECT T1.department, COUNT(*) FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id GROUP BY T1.department\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.teacher_id"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "How many enrollments are there with each status? Show the status and the count.",
+   "answer": "SELECT status, COUNT(*) FROM enrollments GROUP BY status",
+   "output": "```sql\nSELECT T1.status, COUNT(*) FROM enrollments AS T1 JOIN grades AS T2 ON T1.enrollment_id = T2.enrollment_id GROUP BY T1.status\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "Who is our oldest student? Give the name, and if two share a birthday the first alphabetically.",
+   "answer": "SELECT name FROM students ORDER BY birth_date, name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id ORDER BY T1.birth_date LIMIT 1\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "How many midterm grades were recorded in each term? Show the term and the count.",
+   "answer": "SELECT e.term, COUNT(*) FROM grades g JOIN enrollments e ON e.enrollment_id = g.enrollment_id WHERE g.assessment = 'midterm' GROUP BY e.term",
+   "output": "```sql\nSELECT T1.term, COUNT(*) FROM enrollments AS T1 JOIN grades AS T2 ON T1.enrollment_id = T2.enrollment_id WHERE T2.assessment = 'midterm' GROUP BY T1.term\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "Show the title and the teacher's name for every 2-credit course.",
+   "answer": "SELECT c.title, t.name FROM courses c JOIN teachers t ON t.teacher_id = c.teacher_id WHERE c.credits = 2",
+   "output": "```sql\nSELECT T1.title, T3.name FROM courses AS T1 JOIN enrollments AS T2 ON T1.course_id = T2.course_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T1.credits = 2\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.name"
+  },
+  {
+   "db": "school",
+   "level": "medium",
+   "question": "Which department's courses have the most enrollments? Give the department, and if tied the first alphabetically.",
+   "answer": "SELECT c.department FROM enrollments e JOIN courses c ON c.course_id = e.course_id GROUP BY c.department ORDER BY COUNT(*) DESC, c.department LIMIT 1",
+   "output": "```sql\nSELECT T1.department FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id JOIN students AS T4 ON T2.student_id = T4.student_id GROUP BY T1.department ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.teacher_id"
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "Which students have never enrolled in anything? List their names.",
+   "answer": "SELECT name FROM students WHERE student_id NOT IN (SELECT student_id FROM enrollments)",
+   "output": "```sql\nSELECT name FROM students WHERE NOT student_id IN (SELECT student_id FROM enrollments)\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "Which courses have no enrollments at all? List the titles.",
+   "answer": "SELECT c.title FROM courses c LEFT JOIN enrollments e ON e.course_id = c.course_id WHERE e.enrollment_id IS NULL",
+   "output": "```sql\nSELECT title FROM courses WHERE NOT course_id IN (SELECT course_id FROM enrollments)\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "Who got the top final exam score in each course? Show the course title, the student's name and the score, breaking ties alphabetically by student.",
+   "answer": "SELECT title, student, score FROM (SELECT c.title, s.name AS student, g.score, ROW_NUMBER() OVER (PARTITION BY c.course_id ORDER BY g.score DESC, s.name) AS rn FROM grades g JOIN enrollments e ON e.enrollment_id = g.enrollment_id JOIN courses c ON c.course_id = e.course_id JOIN students s ON s.student_id = e.student_id WHERE g.assessment = 'final') WHERE rn = 1",
+   "output": "```sql\nSELECT T1.title, T3.name, MAX(T2.score) FROM courses AS T1 JOIN enrollments AS T2 ON T1.course_id = T2.course_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T2.status = 'completed' ORDER BY T3.name\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.name"
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "Which students average above 80 across all their grades? Show the name and the average rounded to one decimal.",
+   "answer": "SELECT s.name, ROUND(AVG(g.score), 1) FROM students s JOIN enrollments e ON e.student_id = s.student_id JOIN grades g ON g.enrollment_id = e.enrollment_id GROUP BY s.student_id HAVING AVG(g.score) > 80",
+   "output": "```sql\nSELECT T1.name, AVG(T2.score) FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T3.status = 'completed' GROUP BY T1.name HAVING AVG(T2.score) > 80\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.score"
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "What percentage of enrollments were dropped? Round to one decimal.",
+   "answer": "SELECT ROUND(100.0 * SUM(status = 'dropped') / COUNT(*), 1) FROM enrollments",
+   "output": "```sql\nSELECT COUNT(*) FROM enrollments WHERE status = 'dropped' FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id GROUP BY T1.student_id ORDER BY T1.birth_date DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "near \"FROM\": syntax error"
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "How many students have taken at least one course outside their own major's department?",
+   "answer": "SELECT COUNT(DISTINCT s.student_id) FROM students s JOIN enrollments e ON e.student_id = s.student_id JOIN courses c ON c.course_id = e.course_id WHERE c.department <> s.major",
+   "output": "```sql\nSELECT COUNT(*) FROM students WHERE enrollment_id IN (SELECT enrollment_id FROM enrollments WHERE course_id IN (SELECT course_id FROM courses WHERE department <> (SELECT department FROM teachers)\n```",
+   "correct": false,
+   "runs": false,
+   "error": "incomplete input"
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "Among courses with at least three final exam grades, which has the highest average final score? Give the title, and if tied the first alphabetically.",
+   "answer": "SELECT c.title FROM grades g JOIN enrollments e ON e.enrollment_id = g.enrollment_id JOIN courses c ON c.course_id = e.course_id WHERE g.assessment = 'final' GROUP BY c.course_id HAVING COUNT(*) >= 3 ORDER BY AVG(g.score) DESC, c.title LIMIT 1",
+   "output": "```sql\nSELECT T1.title FROM courses AS T1 JOIN enrollments AS T2 ON T1.course_id = T2.course_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T3.assessment = 'final' GROUP BY T1.title HAVING COUNT(*) >= 3 ORDER BY T1.title\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "Who improved by 10 points or more from midterm to final in the same course? Show the student's name and the course title.",
+   "answer": "SELECT s.name, c.title FROM grades m JOIN grades f ON f.enrollment_id = m.enrollment_id JOIN enrollments e ON e.enrollment_id = m.enrollment_id JOIN students s ON s.student_id = e.student_id JOIN courses c ON c.course_id = e.course_id WHERE m.assessment = 'midterm' AND f.assessment = 'final' AND f.score - m.score >= 10",
+   "output": "```sql\nSELECT T1.name, T4.title FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T3.assessment = 'midterm' INTERSECT SELECT T1.name, T4.title FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T3.assessment = 'final' AND T3.score > 10\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T4.title"
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "How many grades were recorded in each month of 2024? Show the two-digit month number and the count, in calendar order.",
+   "answer": "SELECT strftime('%m', graded_on) AS month, COUNT(*) FROM grades WHERE strftime('%Y', graded_on) = '2024' GROUP BY month ORDER BY month",
+   "output": "```sql\nSELECT 2 AS _digit_month, COUNT(*) FROM enrollments AS T1 JOIN grades AS T2 ON T1.enrollment_id = T2.enrollment_id JOIN teachers AS T3 ON T1.teacher_id = T3.teacher_id WHERE T1.enrollment_year = 2024 GROUP BY T2.graded_on ORDER BY T1.birth_date\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.enrollment_year"
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "Which teachers have courses whose grades average higher than the overall average of all grades? List the teachers' names.",
+   "answer": "SELECT t.name FROM teachers t JOIN courses c ON c.teacher_id = t.teacher_id JOIN enrollments e ON e.course_id = c.course_id JOIN grades g ON g.enrollment_id = e.enrollment_id GROUP BY t.teacher_id HAVING AVG(g.score) > (SELECT AVG(score) FROM grades)",
+   "output": "```sql\nSELECT T1.name FROM teachers AS T1 JOIN courses AS T2 ON T1.teacher_id = T2.teacher_id JOIN enrollments AS T3 ON T2.course_id = T3.course_id JOIN grades AS T4 ON T3.enrollment_id = T4.enrollment_id GROUP BY T1.name HAVING AVG(T4.score) > (SELECT AVG(T2.score) FROM courses AS T2 JOIN enrollments AS T3 ON T2.course_id = T3.course_id JOIN grades AS T4 ON T3.enrollment_id = T4.enrollment_id)\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.score"
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "Which students were enrolled in at least two different terms? List their names.",
+   "answer": "SELECT s.name FROM students s JOIN enrollments e ON e.student_id = s.student_id GROUP BY s.student_id HAVING COUNT(DISTINCT e.term) >= 2",
+   "output": "```sql\nSELECT T1.name FROM students AS T1 JOIN enrollments AS T2 ON T1.student_id = T2.student_id WHERE T2.term <> T2.enrolled_on GROUP BY T1.name HAVING COUNT(*) >= 2\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "school",
+   "level": "hard",
+   "question": "For each department, what percentage of enrollments in its courses were dropped? Show the department and the percentage rounded to one decimal, highest first and ties alphabetical.",
+   "answer": "SELECT c.department, ROUND(100.0 * SUM(e.status = 'dropped') / COUNT(*), 1) AS pct FROM enrollments e JOIN courses c ON c.course_id = e.course_id GROUP BY c.department ORDER BY 100.0 * SUM(e.status = 'dropped') / COUNT(*) DESC, c.department",
+   "output": "```sql\nSELECT T1.department, COUNT(*) FROM teachers AS T1 JOIN enrollments AS T2 ON T1.teacher_id = T2.teacher_id JOIN grades AS T3 ON T2.enrollment_id = T3.enrollment_id WHERE T2.status = 'dropped' GROUP BY T1.department ORDER BY T1.name\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.teacher_id"
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "How many people have ever worked here?",
+   "answer": "SELECT COUNT(*) FROM employees",
+   "output": "```sql\nSELECT COUNT(DISTINCT T1.employee_id) FROM employees AS T1 JOIN salaries AS T2 ON T1.employee_id = T2.employee_id\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "How many employees are still with the company?",
+   "answer": "SELECT COUNT(*) FROM employees WHERE termination_date IS NULL",
+   "output": "```sql\nSELECT COUNT(*) FROM employees WHERE termination_date = \"No\"\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "Who doesn't report to anyone? Give the name.",
+   "answer": "SELECT name FROM employees WHERE manager_id IS NULL",
+   "output": "```sql\nSELECT name FROM employees WHERE NOT department_id IN (SELECT manager_id FROM employees)\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "Which departments are based in London? Just the names.",
+   "answer": "SELECT name FROM departments WHERE location = 'London'",
+   "output": "```sql\nSELECT T1.name FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.manager_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T1.location = \"London\"\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "How many Software Engineers have we employed?",
+   "answer": "SELECT COUNT(*) FROM employees WHERE job_title = 'Software Engineer'",
+   "output": "```sql\nSELECT COUNT(*) FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.manager_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T1.name = 'Software Engineering' AND T2.termination_date = 'NULL'\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "How many people were hired in 2020?",
+   "answer": "SELECT COUNT(*) FROM employees WHERE strftime('%Y', hire_date) = '2020'",
+   "output": "```sql\nSELECT COUNT(*) FROM employees WHERE hire_date LIKE \"2020%\"\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "What's the largest salary amount on record?",
+   "answer": "SELECT MAX(amount) FROM salaries",
+   "output": "```sql\nSELECT MAX(T2.amount) FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.manager_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id ORDER BY T1.name DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.amount"
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "What's the smallest department budget?",
+   "answer": "SELECT MIN(annual_budget) FROM departments",
+   "output": "```sql\nSELECT MIN(T2.budget) FROM employees AS T1 JOIN departments AS T2 ON T1.department_id = T2.department_id JOIN salaries AS T3 ON T1.employee_id = T3.employee_id GROUP BY T1.department_id ORDER BY T2.name LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.budget"
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "Who are the Team Leads? List their names.",
+   "answer": "SELECT name FROM employees WHERE job_title = 'Team Lead'",
+   "output": "```sql\nSELECT T3.name FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.manager_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T1.name = 'Team Lead' AND T2.termination_date = 'No'\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.name"
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "How many departments are there?",
+   "answer": "SELECT COUNT(*) FROM departments",
+   "output": "```sql\nSELECT COUNT(DISTINCT department_id) FROM employees\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "How many people left the company in 2024?",
+   "answer": "SELECT COUNT(*) FROM employees WHERE strftime('%Y', termination_date) = '2024'",
+   "output": "```sql\nSELECT COUNT(*) FROM employees WHERE termination_date = \"2024\"\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "easy",
+   "question": "How many salary records have no end date?",
+   "answer": "SELECT COUNT(*) FROM salaries WHERE end_date IS NULL",
+   "output": "```sql\nSELECT COUNT(*) FROM salaries WHERE end_date = \"No end\"\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "How many people have worked in each department? Show the department name and the count.",
+   "answer": "SELECT d.name, COUNT(*) FROM employees e JOIN departments d ON d.department_id = e.department_id GROUP BY d.department_id",
+   "output": "```sql\nSELECT T1.name, COUNT(*) FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.department_id GROUP BY T1.department_id\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "What's the average current salary (records with no end date) in each department? Show the department name and the average rounded to the nearest whole number.",
+   "answer": "SELECT d.name, ROUND(AVG(s.amount)) FROM salaries s JOIN employees e ON e.employee_id = s.employee_id JOIN departments d ON d.department_id = e.department_id WHERE s.end_date IS NULL GROUP BY d.department_id",
+   "output": "```sql\nSELECT AVG(T2.amount), T1.name FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.department_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T3.end_date = \"No termination date\" GROUP BY T1.department_id\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.amount"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "Who are the five highest paid people right now, based on salary records with no end date? Show the name and the amount, highest first and ties alphabetical.",
+   "answer": "SELECT e.name, s.amount FROM salaries s JOIN employees e ON e.employee_id = s.employee_id WHERE s.end_date IS NULL ORDER BY s.amount DESC, e.name LIMIT 5",
+   "output": "```sql\nSELECT T3.name, T2.amount FROM salaries AS T1 JOIN employees AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id WHERE T1.end_date = \"No end date\" ORDER BY T1.amount DESC LIMIT 5\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.amount"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "How many people were hired each year? Show the four-digit year and the count, in year order.",
+   "answer": "SELECT strftime('%Y', hire_date) AS year, COUNT(*) FROM employees GROUP BY year ORDER BY year",
+   "output": "```sql\nSELECT COUNT(*), T1.hire_date FROM employees AS T1 JOIN salaries AS T2 ON T1.employee_id = T2.employee_id GROUP BY T1.hire_date ORDER BY T1.hire_date\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "Who works in a department located in Cairo? List the employees' names.",
+   "answer": "SELECT e.name FROM employees e JOIN departments d ON d.department_id = e.department_id WHERE d.location = 'Cairo'",
+   "output": "```sql\nSELECT T3.name FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.manager_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T1.location = \"Cairo\"\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.name"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "What's the most common job title? If tied, take the first alphabetically.",
+   "answer": "SELECT job_title FROM employees GROUP BY job_title ORDER BY COUNT(*) DESC, job_title LIMIT 1",
+   "output": "```sql\nSELECT T3.name FROM salaries AS T1 JOIN employees AS T2 ON T1.employee_id = T2.employee_id GROUP BY T1.job_title ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.name"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "What's the total annual budget per location? Show the location and the total.",
+   "answer": "SELECT location, SUM(annual_budget) FROM departments GROUP BY location",
+   "output": "```sql\nSELECT T3.location, SUM(T2.amount) FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.manager_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id GROUP BY T3.location\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.location"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "What is Amira Whitfield's current salary, meaning the record with no end date?",
+   "answer": "SELECT s.amount FROM salaries s JOIN employees e ON e.employee_id = s.employee_id WHERE e.name = 'Amira Whitfield' AND s.end_date IS NULL",
+   "output": "```sql\nSELECT T3.amount FROM employees AS T1 JOIN salaries AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id WHERE T1.name = \"Amira Whitfield\" AND T2.end_date = \"No\"\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.amount"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "Who has the most salary records? Give the name, and if tied the first alphabetically.",
+   "answer": "SELECT e.name FROM salaries s JOIN employees e ON e.employee_id = s.employee_id GROUP BY e.employee_id ORDER BY COUNT(*) DESC, e.name LIMIT 1",
+   "output": "```sql\nSELECT T3.name FROM salaries AS T1 JOIN employees AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id GROUP BY T1.employee_id ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.department_id"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "Which Engineering employees were hired from 2022 onwards? List their names.",
+   "answer": "SELECT e.name FROM employees e JOIN departments d ON d.department_id = e.department_id WHERE d.name = 'Engineering' AND e.hire_date >= '2022-01-01'",
+   "output": "```sql\nSELECT T3.name FROM salaries AS T1 JOIN departments AS T2 ON T1.employee_id = T2.department_id JOIN employees AS T3 ON T1.manager_id = T3.employee_id WHERE T2.location = \"Engineering\" AND T1.effective_date >= \"2022\"\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.manager_id"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "How many active employees are in each department? Show the department name and the count, leaving out anyone who has been terminated.",
+   "answer": "SELECT d.name, COUNT(*) FROM employees e JOIN departments d ON d.department_id = e.department_id WHERE e.termination_date IS NULL GROUP BY d.department_id",
+   "output": "```sql\nSELECT T1.name, COUNT(*) FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.department_id WHERE T2.termination_date = 'No'\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "Which department has the largest budget? Give the name, and if tied the first alphabetically.",
+   "answer": "SELECT name FROM departments ORDER BY annual_budget DESC, name LIMIT 1",
+   "output": "```sql\nSELECT T1.name FROM departments AS T1 JOIN salaries AS T2 ON T1.department_id = T2.employee_id GROUP BY T1.department_id ORDER BY SUM(T1.annual_budget) DESC LIMIT 1\n```",
+   "correct": true,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "Who are the three longest-serving hires by hire date? Show the name and hire date, earliest first and ties alphabetical.",
+   "answer": "SELECT name, hire_date FROM employees ORDER BY hire_date, name LIMIT 3",
+   "output": "```sql\nSELECT T3.name, T2.hire_date FROM salaries AS T1 JOIN employees AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id ORDER BY T2.hire_date LIMIT 3\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.department_id"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "How much is each department paying per year in current salaries (records with no end date)? Show the department name and the total.",
+   "answer": "SELECT d.name, SUM(s.amount) FROM salaries s JOIN employees e ON e.employee_id = s.employee_id JOIN departments d ON d.department_id = e.department_id WHERE s.end_date IS NULL GROUP BY d.department_id",
+   "output": "```sql\nSELECT T1.name, SUM(T3.amount) FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.department_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T3.end_date = \"No termination date\"\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "Who has left the company? Show each person's name and their department's name.",
+   "answer": "SELECT e.name, d.name FROM employees e JOIN departments d ON d.department_id = e.department_id WHERE e.termination_date IS NOT NULL",
+   "output": "```sql\nSELECT T3.name, T2.name FROM salaries AS T1 JOIN employees AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id WHERE T2.termination_date <> \"NULL\"\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.department_id"
+  },
+  {
+   "db": "hr",
+   "level": "medium",
+   "question": "What job titles exist in the Sales department and how many people have held each? Show the title and the count.",
+   "answer": "SELECT e.job_title, COUNT(*) FROM employees e JOIN departments d ON d.department_id = e.department_id WHERE d.name = 'Sales' GROUP BY e.job_title",
+   "output": "```sql\nSELECT T3.title, COUNT(*) FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.manager_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T1.name = \"Sales\" GROUP BY T3.title\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.title"
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "For everyone in Customer Support who has a manager, show the employee's name and their manager's name.",
+   "answer": "SELECT e.name, m.name FROM employees e JOIN employees m ON m.employee_id = e.manager_id JOIN departments d ON d.department_id = e.department_id WHERE d.name = 'Customer Support'",
+   "output": "```sql\nSELECT T1.name, T3.name FROM employees AS T1 JOIN salaries AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id WHERE T1.manager_id = T2.employee_id AND T3.name = \"Customer Support\"\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "Which managers have at least six direct reports? Show the manager's name and the number of reports.",
+   "answer": "SELECT m.name, COUNT(*) FROM employees e JOIN employees m ON m.employee_id = e.manager_id GROUP BY m.employee_id HAVING COUNT(*) >= 6",
+   "output": "```sql\nSELECT T3.name, COUNT(*) FROM employees AS T1 JOIN salaries AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id WHERE T2.manager_id = T1.employee_id GROUP BY T2.manager_id HAVING COUNT(*) >= 6\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.manager_id"
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "Who is the highest paid person in each department right now, based on records with no end date? Show the department name, the employee's name and the amount, breaking ties alphabetically by employee.",
+   "answer": "SELECT dept, employee, amount FROM (SELECT d.name AS dept, e.name AS employee, s.amount, ROW_NUMBER() OVER (PARTITION BY d.department_id ORDER BY s.amount DESC, e.name) AS rn FROM salaries s JOIN employees e ON e.employee_id = s.employee_id JOIN departments d ON d.department_id = e.department_id WHERE s.end_date IS NULL) WHERE rn = 1",
+   "output": "```sql\nSELECT T1.department_id, T3.name, MAX(T2.amount) FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.department_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T3.end_date = 'No end date' ORDER BY T2.name\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.name"
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "Who currently earns at least 80% of what their manager earns, using salary records with no end date? List the employees' names.",
+   "answer": "SELECT e.name FROM employees e JOIN employees m ON m.employee_id = e.manager_id JOIN salaries se ON se.employee_id = e.employee_id AND se.end_date IS NULL JOIN salaries sm ON sm.employee_id = m.employee_id AND sm.end_date IS NULL WHERE se.amount >= 0.8 * sm.amount",
+   "output": "```sql\nSELECT T3.name FROM salaries AS T1 JOIN employees AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id WHERE T1.amount >= 0.8 * (SELECT T2.manager_id AS T3.department_id, T2.name FROM employees AS T2 JOIN departments AS T3 ON T2.department_id = T3.department_id)\n```",
+   "correct": false,
+   "runs": false,
+   "error": "near \".\": syntax error"
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "Who was hired before their own manager? List the employees' names.",
+   "answer": "SELECT e.name FROM employees e JOIN employees m ON m.employee_id = e.manager_id WHERE e.hire_date < m.hire_date",
+   "output": "```sql\nSELECT T1.name FROM employees AS T1 JOIN salaries AS T2 ON T1.employee_id = T2.employee_id WHERE T1.manager_id <> T2.employee_id AND T1.hire_date < T2.effective_date\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "What percentage of everyone we've ever employed has left? Round to one decimal.",
+   "answer": "SELECT ROUND(100.0 * SUM(termination_date IS NOT NULL) / COUNT(*), 1) FROM employees",
+   "output": "```sql\nSELECT AVG(termination_date - hire_date) FROM employees AS T1 JOIN salaries AS T2 ON T1.employee_id = T2.employee_id WHERE T1.department_id IN (SELECT department_id FROM departments WHERE annual_budget < 5000) GROUP BY T1.employee_id HAVING MAX(T1.termination_date) - MIN(T1.hire_date) > 365\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "Who got the biggest single pay rise in money terms? Show the name and the increase, with ties alphabetical.",
+   "answer": "WITH r AS (SELECT employee_id, amount - LAG(amount) OVER (PARTITION BY employee_id ORDER BY effective_date) AS rise FROM salaries) SELECT e.name, r.rise FROM r JOIN employees e ON e.employee_id = r.employee_id WHERE r.rise IS NOT NULL ORDER BY r.rise DESC, e.name LIMIT 1",
+   "output": "```sql\nSELECT T3.name, T2.amount - T1.amount FROM salaries AS T1 JOIN employees AS T2 ON T1.employee_id = T2.employee_id JOIN departments AS T3 ON T1.department_id = T3.department_id ORDER BY T1.amount DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T2.amount"
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "What was the average salary in effect on 30 June 2022, across everyone being paid that day? Round to the nearest whole number.",
+   "answer": "SELECT ROUND(AVG(amount)) FROM salaries WHERE effective_date <= '2022-06-30' AND (end_date IS NULL OR end_date >= '2022-06-30')",
+   "output": "```sql\nSELECT AVG(T1.amount) FROM salaries AS T1 JOIN employees AS T2 ON T1.employee_id = T2.employee_id WHERE T2.hire_date = \"30 June 2022\" AND T2.termination_date = \"30 June 2022\"\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "Which departments have an average current salary (records with no end date) above the company-wide average of those same records? List the department names.",
+   "answer": "SELECT d.name FROM salaries s JOIN employees e ON e.employee_id = s.employee_id JOIN departments d ON d.department_id = e.department_id WHERE s.end_date IS NULL GROUP BY d.department_id HAVING AVG(s.amount) > (SELECT AVG(amount) FROM salaries WHERE end_date IS NULL)",
+   "output": "```sql\nSELECT T1.name FROM departments AS T1 JOIN salaries AS T2 ON T1.department_id = T2.employee_id WHERE T2.end_date = 'No' GROUP BY T1.department_id HAVING AVG(T2.amount) > (SELECT AVG(T3.amount) FROM employees AS T3 JOIN salaries AS T4 ON T3.employee_id = T4.employee_id WHERE T4.end_date = 'No')\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T3.amount"
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "How many employees have never had a raise, meaning they have only one salary record?",
+   "answer": "SELECT COUNT(*) FROM (SELECT employee_id FROM salaries GROUP BY employee_id HAVING COUNT(*) = 1)",
+   "output": "```sql\nSELECT COUNT(*) FROM employees WHERE NOT department_id IN (SELECT department_id FROM salaries GROUP BY employee_id HAVING COUNT(*) > 1)\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "Which year had the most hires? Give the four-digit year, and if tied the earliest year.",
+   "answer": "SELECT strftime('%Y', hire_date) AS year FROM employees GROUP BY year ORDER BY COUNT(*) DESC, year LIMIT 1",
+   "output": "```sql\nSELECT T1.year FROM departments AS T1 JOIN employees AS T2 ON T1.department_id = T2.manager_id JOIN salaries AS T3 ON T2.employee_id = T3.employee_id WHERE T2.hire_date = T3.effective_date GROUP BY T1.year ORDER BY COUNT(*) DESC LIMIT 1\n```",
+   "correct": false,
+   "runs": false,
+   "error": "no such column: T1.year"
+  },
+  {
+   "db": "hr",
+   "level": "hard",
+   "question": "How many people report to someone who reports directly to the person with no manager?",
+   "answer": "SELECT COUNT(*) FROM employees e JOIN employees m ON m.employee_id = e.manager_id JOIN employees top ON top.employee_id = m.manager_id WHERE top.manager_id IS NULL",
+   "output": "```sql\nSELECT COUNT(*) FROM employees AS T1 JOIN salaries AS T2 ON T1.employee_id = T2.employee_id WHERE NOT T1.manager_id = 0 AND T2.end_date = '2013-01-01'\n```",
+   "correct": false,
+   "runs": true,
+   "error": ""
+  }
+ ]
+}

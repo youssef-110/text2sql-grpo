@@ -2,11 +2,28 @@
 
 A small offline text-to-SQL model. Base: **Qwen2.5-Coder-1.5B-Instruct**, fine-tuned with **GRPO**. The reward runs the model's SQL against SQLite databases and compares the result with the gold query, so nobody has to hand-label anything. The final model is exported to GGUF and runs in Ollama on a laptop (RTX 4060, 8 GB).
 
-**Published model:** [Hex990/text2sql-qwen2.5-7b](https://huggingface.co/Hex990/text2sql-qwen2.5-7b) on Hugging Face. It is a supervised LoRA fine-tune of **Qwen2.5-7B-Instruct**, trained on Nebius Token Factory, and scores **83.4%** execution accuracy on the test set. It is not the GRPO model: the GRPO run on the 1.5B is paused at step 200 of 750 (`outputs/grpo/checkpoint-200`, not in git) and has not been evaluated.
+**Published model:** [Hex990/text2sql-qwen2.5-7b](https://huggingface.co/Hex990/text2sql-qwen2.5-7b) on Hugging Face. It is a supervised LoRA fine-tune of **Qwen2.5-7B-Instruct**, trained on Nebius Token Factory, and scores **83.4%** execution accuracy on the test set. **It should not be used on real databases:** on 160 real-world questions it scores 16.3%, against 81.9% for the untuned `qwen2.5:7b` (see Results). It is not the GRPO model: the GRPO run on the 1.5B is paused at step 200 of 750 (`outputs/grpo/checkpoint-200`, not in git) and has not been evaluated.
 
 ## Results
 
-Execution accuracy on the 625 questions in `data/test.jsonl`. A query is correct only if it returns the same rows as the gold query on all 3 seeded databases.
+### Real-world questions (the number that matters)
+
+160 hand-written questions over four multi-table SQLite databases (shop, HR, school, football). Scored with `scripts/eval_realworld.py` and `data/realworld/` from branch `ahany/agent-work`, which is not merged into `main` yet.
+
+| | Fine-tuned 7B, epoch 3 | Qwen2.5-7B-Instruct, untuned |
+|---|---|---|
+| All 160 | **16.3%** | **81.9%** |
+| Easy (48) | 25.0% | 93.8% |
+| Medium (64) | 14.1% | 87.5% |
+| Hard (48) | 10.4% | 62.5% |
+| Query runs without error | 54.4% | 96.3% |
+| Results file | `results/realworld-text2sql.json` | `results/realworld-qwen2.5-7b.json` |
+
+The fine-tune is far worse than its own base model here: it joins tables the question never mentions and invents column names. The training data has tiny, mostly single-table schemas where nearly every column is used, and the model learned that habit. For real use, run the untuned `qwen2.5:7b`. Any future training run should be judged on this set, with 81.9% as the bar.
+
+### In-distribution test set
+
+Execution accuracy on the 625 questions in `data/test.jsonl`, which come from the same dataset as the training data. A query is correct only if it returns the same rows as the gold query on all 3 seeded databases.
 
 | Model | All 625 | Hard (500) | Valid SQL | Results file |
 |---|---|---|---|---|
